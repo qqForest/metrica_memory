@@ -1,0 +1,19 @@
+# Личный CLAUDE.md — у каждого свой, в репо не уезжает
+CLAUDE.md
+
+# Локальные настройки Claude Code
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# Редакторы
+.idea/
+.vscode/
+*.swp
+*~
+
+# Логи и временные файлы
+*.log
+.env
+.env.local
