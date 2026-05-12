@@ -40,10 +40,23 @@
 {{#if ROLE == backend}}
 # Бэкенд-специфика
 
-- Стек Metrica: Python / Django / PostgreSQL.
+- Стек Metrica: Python 3.12+ / Django 5.2 / DRF / PostgreSQL. Менеджер пакетов — **uv**.
 - Перед изменением миграций — обязательно посмотреть текущее состояние схемы.
-- Для интеграционных тестов — реальная БД, не моки.
+- Для интеграционных тестов — реальная БД (PostgreSQL), не моки и не SQLite.
 - Чек-лист сдачи задачи: см. `/pr-metrica`.
+
+Командные backend-правила (читать перед написанием кода):
+
+- [`backend-style.md`](../Projects/metrica_memory/rules/shared/backend-style.md) — импорты, queryset, ORM-антипаттерны, запрет приватных методов.
+- [`viewset-patterns.md`](../Projects/metrica_memory/rules/shared/viewset-patterns.md) — 4 типа ViewSet, ловушки class-level queryset.
+- [`serializer-patterns.md`](../Projects/metrica_memory/rules/shared/serializer-patterns.md) — отдельный сериализатор на контекст.
+- [`service-layer.md`](../Projects/metrica_memory/rules/shared/service-layer.md) — `*Session` классы, `request` в конструктор сервиса.
+- [`soft-delete.md`](../Projects/metrica_memory/rules/shared/soft-delete.md) — фильтр **только** в `get_queryset_services.py`.
+- [`audit-logging.md`](../Projects/metrica_memory/rules/shared/audit-logging.md) — snapshot-before-mutation, `*Log` модели.
+- [`django-migration-pitfalls.md`](../Projects/metrica_memory/rules/shared/django-migration-pitfalls.md) — исторические модели, `update_fields`.
+- [`test-patterns-crud.md`](../Projects/metrica_memory/rules/shared/test-patterns-crud.md) — `BaseTestCase` + async, фабрики, матрица кодов.
+- [`test-patterns-list-filters.md`](../Projects/metrica_memory/rules/shared/test-patterns-list-filters.md) — access/filters/complex.
+- [`tests-sync-to-async.md`](../Projects/metrica_memory/rules/shared/tests-sync-to-async.md) — для синхронных Celery-вызовов в тестах.
 
 Мои личные правила: [`rules/backend/{{NAME_LOWER}}/`](../Projects/metrica_memory/rules/backend/{{NAME_LOWER}}/).
 {{/if}}
