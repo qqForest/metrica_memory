@@ -16,6 +16,11 @@
 - [`exceptions-via-base.md`](exceptions-via-base.md) — `<app>/exceptions.py` + `BaseAPIException`, без `errors.py`.
 - [`services-suffix.md`](services-suffix.md) — файлы в `<app>/services/` с суффиксом `_services.py`.
 - [`is-primary-for-sensitive-scope.md`](is-primary-for-sensitive-scope.md) — `filter_by_outlet(is_primary=True)` для timeclock и логов.
+- [`split-viewsets-by-action.md`](split-viewsets-by-action.md) — при возможности разделять ViewSet'ы по action/ресурсу.
+
+### Тесты
+
+- [`reuse-fixtures-before-adding.md`](reuse-fixtures-before-adding.md) — перед новой фикстурой проверить существующие, не плодить копии.
 
 ### Процесс
 
