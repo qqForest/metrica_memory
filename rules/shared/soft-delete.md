@@ -1,8 +1,8 @@
 # Soft delete — паттерн
 
-**Когда применять:** при добавлении soft-delete к существующей сущности или при работе с уже soft-deleted моделями (`WorkShift`, `TimeClock`).
+**Когда применять:** при добавлении soft-delete к существующей сущности или при работе с уже soft-deleted моделями (`WorkShift`, `TimeClock`, `ExternalMetric`).
 
-Эталонная реализация — `WorkShift` (MCA-185, MCA-197).
+Актуальный эталон — `ExternalMetric` (MCA-320). Старые реализации `WorkShift` (MCA-185, MCA-197) и `TimeClock` сделаны через `get_queryset_services.py` — это **legacy**, для новых сущностей не повторять.
 
 ---
 
@@ -16,56 +16,101 @@ class WorkShift(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='+',
+        verbose_name='Удалил',
     )
 ```
 
 `deleted_by` — `SET_NULL`, чтобы удаление пользователя не уничтожало историю удалений.
 
+### `related_name` — по умолчанию, не запрещать
+
+**Правило:** не указывать `related_name='+'` без явной причины. Дефолтный reverse-accessor (`user.externalmetric_set` и подобные) полезен для отладки/админки/случайных запросов.
+
+**Почему:** на ревью MCA-320 Руслан явно отметил `related_name='+'` на `ExternalMetric.deleted_by` комментарием «зачем запрет?» — паттерн скопировали из этого правила, и он оказался лишним ограничением.
+
+```python
+# Раньше предлагали — больше так не делать без причины
+deleted_by = models.ForeignKey(
+    User, null=True, blank=True, on_delete=models.SET_NULL,
+    related_name='+',   # ← убрать, если нет конкретной нужды
+)
+
+# Дефолт — оставлять Django-овский reverse
+deleted_by = models.ForeignKey(
+    User, null=True, blank=True, on_delete=models.SET_NULL,
+    verbose_name='Удалил',
+)
+```
+
+Запрет (`related_name='+'`) допустим **только** когда:
+- На одну User несколько FK от одной модели и нужно избежать коллизии имён (тогда осмысленные `related_name` каждому, а не `'+'`).
+- Reverse-набор гарантированно никогда не понадобится **и** не нужен для отладки/админки.
+
+В большинстве кейсов — оставляем дефолт.
+
 ---
 
-## Главное правило: фильтр **только** в `get_queryset_services.py`
+## Главное правило: фильтр `deleted_at__isnull=True` в `get_queryset` override
 
 **НЕ ставить** фильтр `deleted_at__isnull=True` на class-level queryset ViewSet.
 
-```python
-# КАТЕГОРИЧЕСКИ НЕЛЬЗЯ — суперюзер получит 404 на soft-deleted смены
-class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
-    queryset = WorkShift.objects.filter(deleted_at__isnull=True)
-```
+**НЕ дублировать** фильтр по каждому scope-методу (`get_team_queryset`, `get_own_queryset`) — это даёт повтор и сбивает читателя.
 
-**Правильно:**
+**Правильно** — переопределить `get_queryset` поверх `ScopedViewSetMixin`, добавить фильтр одним местом с проверкой `is_superuser`. Суперюзер видит soft-deleted, все остальные — нет.
 
 ```python
-# ViewSet — голый queryset
-class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
-    queryset = WorkShift.objects.all()
+class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
+    queryset = ExternalMetric.objects.all()   # голый — фильтр ниже
 
     def get_all_queryset(self, qs):
-        return WorkShiftGetQuerysetService().build(qs, self.request.user)
+        # Здесь — orthogonal-фильтры, общие для всех (org-фильтр и т.п.).
+        # Soft-delete сюда НЕ ставим: get_all_queryset вызывается и для
+        # суперюзера тоже — фильтр спрятал бы удалённые от него.
+        user = self.request.user
+        if user.organization_id:
+            qs = qs.filter(establishment__organization_id=user.organization_id)
+        return qs
 
+    def get_team_queryset(self, qs):
+        # Только scope-логика (по локациям/юзеру). БЕЗ soft-delete.
+        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
 
-# get_queryset_services.py — фильтр с bypass для суперюзера
-def build(qs, user):
-    if user.is_superuser or user.is_staff:
-        return qs   # суперюзер видит удалённые
-    return qs.filter(deleted_at__isnull=True)
+    def get_own_queryset(self, qs):
+        return self.get_team_queryset(qs)
+
+    def get_queryset(self):
+        # Применяется поверх ScopedViewSetMixin для всех action-ов.
+        # Суперюзер минует фильтр и видит удалённые.
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(deleted_at__isnull=True)
+        return qs
 ```
 
-**Почему:** class-level `queryset` используется `get_object()` как база, и `ScopedViewSetMixin` применяет bypass **поверх** уже отфильтрованного queryset — но не может «отменить» фильтр, заданный на уровне класса. См. [[viewset-patterns]] (ловушка class-level queryset).
+**Почему именно `get_queryset` override, не `get_team/own_queryset` и не `get_all_queryset`:**
+
+- `get_team/own_queryset` → дублирование на каждый scope; легко забыть один из методов, и часть ролей увидит удалённые.
+- `get_all_queryset` без guard → фильтр уходит к суперюзеру тоже (нежелательно).
+- `get_all_queryset` с `if not user.is_superuser` → работает, но семантика «orthogonal-фильтр для всех» лучше выражается в `get_queryset` поверх scope-разделения.
+- `get_queryset` override → одна точка, чистая семантика «после scope — убрать удалённые для всех не-суперюзеров».
+
+**Почему НЕ class-level queryset:** `get_object()` использует class-level queryset; `ScopedViewSetMixin` применяет bypass **поверх** уже отфильтрованного queryset — но не может «отменить» фильтр класса. Суперюзер получит 404 на soft-deleted. См. [[viewset-patterns]] (ловушка class-level queryset).
+
+**История:** на ревью MCA-320 решение прошло три итерации — `get_team/own` → `get_all_queryset` (с guard `if not is_superuser`) → `get_team/own` → итог `get_queryset` override. Зафиксировано как канон.
 
 ---
 
-## Bypass суперюзера требует `get_all_queryset`
+## Legacy: bypass через `get_all_queryset` + `*GetQuerysetService`
 
-**Правило:** bypass суперюзера в `ScopedViewSetMixin` срабатывает **только** если ViewSet определяет `get_all_queryset`. Если метода нет — суперюзер проходит через обычный `get_team_queryset`.
+Старые сущности (`WorkShift`) используют выделенный `*GetQuerysetService` и фильтрацию внутри `get_all_queryset`. Это работающий, но **устаревший** паттерн — для новых сущностей не повторять.
 
 | Сущность | Суперюзер видит удалённые? | Механизм |
 |---|---|---|
-| `WorkShift` | **Да** | Определён `get_all_queryset` → bypass → `WorkShiftGetQuerysetService.build()` возвращает qs без фильтра |
-| `TimeClock` | **Нет** | `get_all_queryset` **не определён** → суперюзер проходит через сервисный слой → `deleted_at__isnull=True` для всех |
+| `ExternalMetric` (новый эталон) | Да | `get_queryset` override с `if not is_superuser` |
+| `WorkShift` (legacy) | Да | `get_all_queryset` → `WorkShiftGetQuerysetService.build()` |
+| `TimeClock` (legacy) | Нет | `get_all_queryset` не определён; фильтр в scope-методах |
 
-Отсутствие `get_all_queryset` — **архитектурное решение**, не забытый метод. Для `TimeClock` суперюзер не видит удалённые записи — это намеренное поведение: финальное состояние таймклока должно быть скрыто.
+`TimeClock` — намеренно: финальное состояние таймклока скрыто от всех. Если для новой сущности нужно «суперюзер тоже не видит удалённые» — добавить guard в `get_queryset` override (или просто не делать `if not is_superuser`).
 
 **Ловушка отладки:** если падают тесты на `/work-shifts/{id}/` и `/timeclocks/{id}/` одновременно — смотреть на URL в трейсбеке. 404 на TimeClock от суперюзера — корректно, **не баг**.
 

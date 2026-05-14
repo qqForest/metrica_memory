@@ -116,14 +116,59 @@ class ShiftClaimViewSet(
 
 ## Тип 4: Scope-логика в сервисе
 
-Когда `get_team_queryset` содержит нетривиальную фильтрацию — выносить в `*Session` класс.
+Когда `get_team_queryset` содержит нетривиальную фильтрацию — выносить в `*Service` класс (legacy: `*Session`).
 
 ```python
 def get_team_queryset(self, qs):
-    return UserSession().get_team_queryset(qs, self.request.user, self.request.method)
+    return UserService().get_team_queryset(qs, self.request.user, self.request.method)
 ```
 
 ViewSet остаётся тонким, сложная фильтрация тестируется отдельно от HTTP. См. [[service-layer]].
+
+---
+
+## Orthogonal-фильтры через `get_queryset` override
+
+**Когда применять:** фильтр, который применяется **ко всем scope-ам одинаково** (soft-delete, `is_archived`, `is_active` и т.п.) — поверх scope-разделения.
+
+**Правило:** такой фильтр ставится в переопределённом `get_queryset(self)` ViewSet'а, **после** `super().get_queryset()`. Не дублируется по `get_team/own_queryset`, не ставится в `get_all_queryset` (последний вызывается и для суперюзера — фильтр уйдёт и ему). Guard `if not user.is_superuser` — если по бизнес-семантике суперюзер должен видеть скрытое.
+
+**Пример (soft-delete):**
+
+```python
+class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
+    queryset = ExternalMetric.objects.all()
+
+    def get_all_queryset(self, qs):
+        # orthogonal-фильтр для ВСЕХ (включая суперюзера), например по организации
+        user = self.request.user
+        if user.organization_id:
+            qs = qs.filter(establishment__organization_id=user.organization_id)
+        return qs
+
+    def get_team_queryset(self, qs):
+        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
+
+    def get_own_queryset(self, qs):
+        return self.get_team_queryset(qs)
+
+    def get_queryset(self):
+        # orthogonal-фильтр для всех, КРОМЕ суперюзера
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.filter(deleted_at__isnull=True)
+        return qs
+```
+
+**Семантическое разделение:**
+
+| Слой | Что туда кладём | Применяется к |
+|---|---|---|
+| `get_all_queryset` | Общий фильтр (org-видимость и т.п.) | Всем юзерам, включая суперюзера |
+| `get_team_queryset` / `get_own_queryset` | Только scope-логика (по локациям, по юзеру) | Только конкретному scope |
+| `get_queryset` override | Orthogonal-фильтры с возможным guard на суперюзера (soft-delete) | После scope-разделения, перед action |
+
+Источник: ревью MCA-320 (yolarus). См. [[soft-delete]].
 
 ---
 
@@ -164,7 +209,7 @@ class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
     queryset = WorkShift.objects.filter(deleted_at__isnull=True)
 ```
 
-`get_object()` использует class-level queryset. `ScopedViewSetMixin` применяет bypass **поверх** уже отфильтрованного — но не может «отменить» фильтр класса. Фильтрация soft-delete — только в `get_queryset_services.py` с явным bypass. См. [[soft-delete]].
+`get_object()` использует class-level queryset. `ScopedViewSetMixin` применяет bypass **поверх** уже отфильтрованного — но не может «отменить» фильтр класса. Фильтрация soft-delete — через `get_queryset` override с guard `if not user.is_superuser`. См. [[soft-delete]].
 
 ### `ScopedViewSetMixin` bypass требует `get_all_queryset`
 

@@ -35,9 +35,9 @@ def filter_by_outlet(
 
 ---
 
-## Доменная логика — класс `*Session`
+## Доменная логика — класс `*Service`
 
-**Куда:** `app/services/services.py` каждого Django-приложения (`RoleSession`, `UserSession`, `ShiftSession`, …).
+**Куда:** `app/services/services.py` (или `app/services/<entity>_services.py` для одной сущности) каждого Django-приложения (`RoleService`, `UserService`, `ShiftService`, …).
 
 **Правило:**
 - Один класс на домен.
@@ -48,13 +48,19 @@ def filter_by_outlet(
 **Пример:**
 
 ```python
-class RoleSession:
+class RoleService:
     def create_role_permissions(self, role: Role, perms: list[dict]) -> None:
         """Создаёт M2M role_permissions для роли."""
         RolePermission.objects.bulk_create([
             RolePermission(role=role, **rp) for rp in perms
         ])
 ```
+
+### Legacy: `*Session`
+
+В кодовой базе есть классы `*Session` (`SystemLoaderSettingsSession`, `UserLoaderSettingsSession`, `RoleSession`, …) — это **устаревший** вариант наименования. На ревью MCA-320 Руслан написал: «давай на `ExternalMetricService` поменяем, `Session` — первое что в голову пришло, так уже сервисы пишем почти везде».
+
+**Для новых сервисов** — использовать суффикс `*Service`. Существующие `*Session` — не переименовывать массово, но при правке файла можно заодно переименовать.
 
 ---
 
@@ -101,8 +107,8 @@ class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
 | Ситуация | Куда |
 |---|---|
 | Фильтрация, общая для многих ViewSet | Функция в `base/services.py` |
-| Создание/обновление M2M-связей | `*Session` класс |
-| Сложная scope-логика | `*Session` класс |
+| Создание/обновление M2M-связей | `*Service` класс |
+| Сложная scope-логика | `*Service` класс |
 | Действие повторяется 2+ раз внутри **одной** функции | Вложенная функция-замыкание |
 | Тривиальная одно-строчная операция в одном месте | Inline в коде вызова |
 
@@ -113,7 +119,7 @@ class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
 ## Связанное
 
 - [[viewset-patterns]] — ViewSet вызывают сервисы для бизнес-логики и scope
-- [[serializer-patterns]] — `*Session` создаёт M2M из `create()`/`update()` сериализатора
+- [[serializer-patterns]] — `*Service` создаёт M2M из `create()`/`update()` сериализатора
 - [[audit-logging]] — сервис как точка размещения `log_*_action()`
 - [[soft-delete]] — `*DeleteService(request)` для soft-delete
 - [[backend-style]] — запрет приватных методов, общие правила
