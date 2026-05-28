@@ -4,18 +4,27 @@
 
 ## Что тут есть
 
-<!-- по мере добавления — обновляй список -->
+- [`get_desc.md`](get_desc.md) — `/get_desc`, генерация PR description в формате ЧТО / ПОЧЕМУ / Тесты + отдельный блок для тестировщика.
 
-_(пока пусто — добавляй по одной папке на скилл)_
+## Как подключить
 
-## Как добавить
+Single-file скиллы (`<name>.md` с frontmatter `description:`) — симлинком в `~/.claude/commands/`:
 
 ```bash
-mkdir <skill-name>
-$EDITOR <skill-name>/SKILL.md
+ln -s ~/Projects/metrica_memory/skills/backend/lina/get_desc.md ~/.claude/commands/get_desc.md
 ```
 
-Минимальный `SKILL.md`:
+Скиллы-папки (`<name>/SKILL.md`) — в `~/.claude/skills/`:
+
+```bash
+ln -s ~/Projects/metrica_memory/skills/backend/lina/<skill-name> ~/.claude/skills/<skill-name>
+```
+
+## Как добавить новый
+
+**Single-file** — один `<name>.md` с frontmatter в этой папке.
+
+**Skill-папка** — `mkdir <skill-name> && $EDITOR <skill-name>/SKILL.md`. Минимум:
 
 ```markdown
 ---

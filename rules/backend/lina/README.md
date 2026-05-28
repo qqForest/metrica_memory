@@ -4,9 +4,28 @@
 
 ## Что тут есть
 
-<!-- по мере добавления — обновляй список -->
+### Стиль кода
 
-_(пока пусто — добавляй по одному `.md` на правило)_
+- [`compact-lines.md`](compact-lines.md) — не дробить строки до 99 символов.
+- [`kwargs-at-call.md`](kwargs-at-call.md) — именованные аргументы при вызове.
+- [`naming-and-comments.md`](naming-and-comments.md) — полные имена, короткие docstring, **никаких** MCA-XXX в коде.
+- [`typing-everywhere.md`](typing-everywhere.md) — type hints везде, без строковых аннотаций.
+
+### Архитектурные конвенции
+
+- [`exceptions-via-base.md`](exceptions-via-base.md) — `<app>/exceptions.py` + `BaseAPIException`, без `errors.py`.
+- [`services-suffix.md`](services-suffix.md) — файлы в `<app>/services/` с суффиксом `_services.py`.
+- [`is-primary-for-sensitive-scope.md`](is-primary-for-sensitive-scope.md) — `filter_by_outlet(is_primary=True)` для timeclock и логов.
+- [`split-viewsets-by-action.md`](split-viewsets-by-action.md) — при возможности разделять ViewSet'ы по action/ресурсу.
+
+### Тесты
+
+- [`reuse-fixtures-before-adding.md`](reuse-fixtures-before-adding.md) — перед новой фикстурой проверить существующие, не плодить копии.
+
+### Процесс
+
+- [`pr-description-style.md`](pr-description-style.md) — выжимка для description, один экран без скролла.
+- [`pr-review-comments-style.md`](pr-review-comments-style.md) — короткие inline-комменты без эмодзи и ярлыков.
 
 ## Шаблон
 
