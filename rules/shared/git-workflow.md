@@ -10,10 +10,12 @@
 
 | Тип | Шаблон | Пример |
 |---|---|---|
-| Фича | `feature/MCA-XX-описание` | `feature/MCA-42-pinned-tabs` |
-| Баг | `bugfix/MCA-XX-описание` | `bugfix/MCA-15-filter-crash` |
-| Хотфикс | `hotfix/MCA-XX-описание` (от `main`) | `hotfix/MCA-99-auth-fix` |
-| Техдолг | `chore/MCA-XX-описание` | `chore/MCA-30-typescript-migration` |
+| Фича | `feature/MCA-XX` | `feature/MCA-1452` |
+| Баг | `bugfix/MCA-XX` | `bugfix/MCA-1190` |
+| Хотфикс | `hotfix/MCA-XX` (от `main`) | `hotfix/MCA-99` |
+| Техдолг | `chore/MCA-XX` | `chore/MCA-30` |
+
+Несколько задач в одной ветке — номера через дефис: `feature/MCA-1279-1280`.
 
 ---
 
@@ -95,7 +97,7 @@ PR: https://github.com/metrica-erp/<repo>/pull/XX
 
 После мержа, если нужно тестирование — в тот же топик с шаблоном тестировщика.
 
-После исправления замечаний — ответ в том же треде: «Исправил, готово».
+После исправления замечаний — ответ в том же треде: «Исправлено, готово».
 
 ---
 
