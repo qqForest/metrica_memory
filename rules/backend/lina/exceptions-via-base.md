@@ -1,33 +1,26 @@
 # Кастомные исключения — через BaseAPIException
 
 **Когда применять:** при добавлении нового бизнес-исключения в любое приложение.
+Как устроен класс и когда нужен `ValidationError` — в [[custom-exceptions]].
 
 **Правило:**
 
-- Все кастомные исключения приложения — в `<app>/exceptions.py`.
-- Наследуются от `base.exceptions.BaseAPIException` (он наследуется от DRF `APIException`).
-- **Не** создавать отдельный `errors.py` параллельно с `exceptions.py`.
-- **Не** дублировать общий базовый класс в приложении.
+- Исключения приложения — только в `<app>/exceptions.py`. **Не** создавать отдельный `errors.py`.
+- Наследовать от `base.exceptions.BaseAPIException`, **не** от голого `Exception`.
 
 ```python
-# Хорошо — shifts/exceptions.py
-from base.exceptions import BaseAPIException
-
-class TimeClockAlreadyClosedError(BaseAPIException):
-    default_detail = 'Таймклок уже закрыт.'
-    default_code = 'timeclock_already_closed'
-
-
-# Плохо — отдельный errors.py
+# Плохо — отдельный errors.py и наследование от Exception
 # shifts/errors.py
 class TimeClockError(Exception):
     ...
 ```
 
-**Почему:** `BaseAPIException` уже есть в `base/exceptions.py` — он даёт правильное поведение DRF (статус-код, сериализация в JSON-ответ, перехват middleware). Своя иерархия наверх «Exception» ломает обработку: ошибки выпадают как 500 вместо понятного статус-кода.
-
-Один файл `exceptions.py` на приложение — все ошибки в одном месте, легко искать.
+**Почему:** `BaseAPIException` даёт правильное поведение DRF: статус-код, JSON-ответ, перехват
+middleware. Наследник `Exception` выпадает как 500 вместо понятного статус-кода. Один
+`exceptions.py` на приложение — все ошибки в одном месте; в проекте так сделано везде (11 приложений, ни
+одного `errors.py`).
 
 ## Связанное
 
+- [[custom-exceptions]] — структура класса, коды, `ValidationError` vs `*Exception`
 - [[service-layer]] — где выкидывать исключения
