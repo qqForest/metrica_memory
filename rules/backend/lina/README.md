@@ -59,6 +59,7 @@ paths:
 - [`no-rerun-after-cosmetics.md`](no-rerun-after-cosmetics.md) — после косметики полный прогон не повторять.
 - [`no-env-data-backfill.md`](no-env-data-backfill.md) — backfill, админку, `create_superuser` под выкатку не предлагать.
 - [`tracker.md`](tracker.md) — задачи не заводить, без призывов, чек-листы эпика прав, статус из Трекера.
+- [`ask-wiki-agent.md`](ask-wiki-agent.md) — вопросы по документации вики — агенту `wiki-research`, сам не ищу.
 - [`propose-skill.md`](propose-skill.md) — предложить оформить повторяемый приём скиллом.
 
 ## Шаблон
