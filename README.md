@@ -21,7 +21,7 @@ metrica_memory/
 ├── CLAUDE.project.example.md   ← шаблон для CLAUDE.md в корне проекта
 ├── .gitignore                  ← личный CLAUDE.md не коммитим
 │
-├── skills/                     ← слэш-команды (/ticket, /pr-metrica, ...)
+├── skills/                     ← слэш-команды (/ticket, ...)
 │   ├── README.md
 │   ├── shared/                 ← общекомандные скиллы
 │   └── backend/
