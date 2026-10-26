@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # Backend — общий стиль
 
 Сводка ключевых стилистических правил Metrica Backend (Django/DRF, Python 3.12+, uv, pytest). Применять при написании и правке любого backend-кода.
@@ -171,10 +176,10 @@ permission-modules/     # неправильно
 **Пример:**
 
 ```python
-def filter_by_outlet(
+def filter_by_establishments(
     user: User,
     queryset: QuerySet,
-    field_name: str = 'outlet_id',
+    field_name: str = 'establishment_id',
 ) -> QuerySet:
     """Фильтр queryset по локациям пользователя.
 

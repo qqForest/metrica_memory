@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # Soft delete — паттерн
 
 **Когда применять:** при добавлении soft-delete к существующей сущности или при работе с уже soft-deleted моделями (`WorkShift`, `TimeClock`, `ExternalMetric`).
@@ -73,7 +78,7 @@ class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
 
     def get_team_queryset(self, qs):
         # Только scope-логика (по локациям/юзеру). БЕЗ soft-delete.
-        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
+        return filter_by_establishments(self.request.user, qs, field_name='establishment_id')
 
     def get_own_queryset(self, qs):
         return self.get_team_queryset(qs)

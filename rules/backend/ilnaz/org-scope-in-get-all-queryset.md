@@ -7,7 +7,7 @@
 1. **Org-фильтр.** Если у юзера есть `organization`, ограничить queryset записями его организации: `qs.filter(establishment__organization_id=user.organization_id)`. У юзеров без organization — без фильтра.
 2. **Soft-delete фильтр** для всех, кроме суперюзера. Суперюзер видит soft-deleted (норма проекта).
 
-`get_team_queryset` остаётся узким — отвечает только за `filter_by_outlet(...)` по своим локациям, **не** дублирует фильтры из `get_all_queryset`.
+`get_team_queryset` остаётся узким — отвечает только за `filter_by_establishments(...)` по своим локациям, **не** дублирует фильтры из `get_all_queryset`.
 
 **Пример:**
 
@@ -25,7 +25,7 @@ class ExternalMetricViewSet(ScopedViewSetMixin, ...):
 
     def get_team_queryset(self, qs):
         # БЕЗ повторного deleted_at__isnull=True — он уже в get_all_queryset
-        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
+        return filter_by_establishments(self.request.user, qs, field_name='establishment_id')
 
     def get_own_queryset(self, qs):
         return self.get_team_queryset(qs)

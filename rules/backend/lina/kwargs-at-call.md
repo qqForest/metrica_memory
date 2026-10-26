@@ -1,28 +1,26 @@
-# Именованные аргументы при вызове
+---
+paths:
+  - "**/*.py"
+---
 
-**Когда применять:** при вызове любой функции/метода **нашего** кода с двумя и более аргументами.
+# Аргументы при вызове — позиционно
 
-**Правило:** передавать аргументы по имени, не позиционно.
+**Когда применять:** при вызове функции/метода нашего кода.
+
+**Правило:** аргументы передавать позиционно, чтобы вызов помещался в одну строку (см. [[compact-lines]]).
+По имени — только необязательный параметр, перед которым пропущен другой необязательный.
 
 ```python
 # Хорошо
-filter_by_outlet(
-    user=self.request.user,
-    queryset=qs,
-    field_name='outlet_id',
-    is_primary=True,
-)
-FileCache.pop(file_uuid=str(file_uuid), username=user.username)
+decline_claim(claim, request.user, serializer.validated_data['decline_reason'])
+raise ShiftException(ShiftException.SHIFT_NOT_FOUND, detail, status.HTTP_404_NOT_FOUND)
+raise ShiftException(ShiftException.ROLE_NOT_IN_SCHEDULE, detail, field_name='profile_id')  # status_code пропущен
 
-# Плохо
-filter_by_outlet(self.request.user, qs, 'outlet_id', True)
-FileCache.pop(str(file_uuid), user.username)
+# Плохо — kwargs растягивают вызов
+decline_claim(claim=claim, user=request.user, reason=serializer.validated_data['decline_reason'])
 ```
 
-**Исключения:**
-- Встроенные типы и stdlib: `set()`, `len()`, `list.append()`, `datetime.combine()` — по позициям.
-- Однопараметрические вызовы (`Model.objects.get(pk)`) — необязательно.
+Kwarg-only `*` в сигнатурах не форсить. Существующие вызовы с kwargs попутно не переписывать.
 
-**Почему:** kwargs делают вызов самодокументированным и защищают от тихих регрессий при изменении сигнатуры. Поменяли порядок параметров — позиционные вызовы ломаются с непонятной ошибкой типа, kwargs продолжают работать.
-
-**Связанное правило:** для функций со многими параметрами можно форсить kwarg-only через `*` в сигнатуре — но не обязательно.
+**Почему:** так пишут в проекте (development на 23.10.2026: 75% вызовов позиционные, исключения — 111 из 119).
+Руслан против вызовов, растянутых именованными аргументами на несколько строк (MCA-764, 07.08.2026).

@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # DRF ViewSet — паттерны
 
 **Когда применять:** при создании или правке любого `ViewSet` в Metrica Backend.
@@ -100,7 +105,7 @@ class ShiftClaimViewSet(
 ):
     queryset = ShiftClaim.objects.all()
     serializer_class = ShiftClaimSerializer
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [ListOnlyFilterBackend, filters.OrderingFilter]
     filterset_class = ShiftClaimFilter
 
     @action(detail=True, methods=['post'])
@@ -111,6 +116,9 @@ class ShiftClaimViewSet(
     def decline(self, request, pk=None):
         ...
 ```
+
+`filter_backends` прописывать только чтобы добавить сортировку; дефолтные бэкенды (`ListOnlyFilterBackend`,
+`ListOnlySearchFilter` из `DEFAULT_FILTER_BACKENDS`) перечислять заново — список заменяет дефолт целиком.
 
 ---
 
@@ -147,7 +155,7 @@ class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
         return qs
 
     def get_team_queryset(self, qs):
-        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
+        return filter_by_establishments(self.request.user, qs, field_name='establishment_id')
 
     def get_own_queryset(self, qs):
         return self.get_team_queryset(qs)
