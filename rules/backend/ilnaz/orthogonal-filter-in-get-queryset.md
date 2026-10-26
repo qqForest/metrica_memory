@@ -18,7 +18,7 @@ class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
 
     def get_team_queryset(self, qs):
         # Чистая scope-логика. Никакого soft-delete.
-        return filter_by_outlet(self.request.user, qs, field_name='establishment_id')
+        return filter_by_establishments(self.request.user, qs, field_name='establishment_id')
 
     def get_queryset(self):
         # Orthogonal-фильтр поверх scope, с guard на суперюзера.

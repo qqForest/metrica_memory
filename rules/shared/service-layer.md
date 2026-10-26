@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # Сервисный слой
 
 **Когда применять:** при выделении бизнес-логики из ViewSet/Serializer; при добавлении транзакций, логирования или сложной фильтрации.
@@ -20,11 +25,10 @@
 **Пример:**
 
 ```python
-def filter_by_outlet(
+def filter_by_establishments(
     user: User | AbstractUser | AnonymousUser,
     queryset: QuerySet,
-    field_name: str = 'outlet_id',
-    is_primary: bool = False,
+    field_name: str = 'establishment_id',
     in_organization: bool = False,
 ) -> QuerySet:
     """Фильтр queryset по локациям пользователя."""

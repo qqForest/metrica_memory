@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # Кастомные ошибки vs `serializers.ValidationError`
 
 **Когда применять:** при выборе, как сообщать о бизнес-ошибке 400 из ViewSet или сериализатора Metrica Backend.

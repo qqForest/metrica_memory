@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # Type hints — везде, без строковых аннотаций
 
 **Когда применять:** при написании любой новой функции или метода.
@@ -13,11 +18,10 @@
 from user_profiles.models import User
 from django.db.models import QuerySet
 
-def filter_by_outlet(
+def filter_by_establishments(
     user: User,
     queryset: QuerySet,
-    field_name: str = 'outlet_id',
-    is_primary: bool = False,
+    field_name: str = 'establishment_id',
 ) -> QuerySet:
     ...
 
@@ -34,12 +38,12 @@ def update_shift(shift: WorkShift) -> None:
 
 
 # Плохо — строковая аннотация
-def filter_by_outlet(user: 'User', queryset, field_name='outlet_id'):
+def filter_by_establishments(user: 'User', queryset, field_name='establishment_id'):
     ...
 
 
 # Плохо — без аннотации возврата
-def filter_by_outlet(user: User, queryset: QuerySet, field_name: str = 'outlet_id'):
+def filter_by_establishments(user: User, queryset: QuerySet, field_name: str = 'establishment_id'):
     ...
 ```
 

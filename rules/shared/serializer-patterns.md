@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 # DRF Serializer — паттерны
 
 **Когда применять:** при создании или правке любого `serializers.Serializer` / `ModelSerializer` в Metrica Backend.
