@@ -17,7 +17,7 @@
 
 ```
 В репо есть, локально нет:
-→ get_desc: ln -s ~/Projects/metrica_memory/skills/backend/lina/get_desc.md ~/.claude/commands/get_desc.md
+→ get_desc: ln -s ~/Projects/metrica_memory/skills/backend/lina/get_desc ~/.claude/skills/get_desc
 
 Уже подключено: ничего
 ```
