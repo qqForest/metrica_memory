@@ -4,22 +4,17 @@
 
 ## Что тут есть
 
-- [`get_desc.md`](get_desc.md) — `/get_desc`, описание PR: Что / Почему / Тесты + блоки для смежников и куда их публиковать.
+- [`get_desc/`](get_desc/SKILL.md) — `/get_desc`, описание PR: Что / Почему / Тесты + блоки для смежников и куда их публиковать.
 - [`new_job/`](new_job/SKILL.md) — задача MCA от разбора до тестов: контекст → план → код → проверка → тесты.
 - [`self-review/`](self-review/SKILL.md) — перечитать свой код по чек-листу из шести пунктов перед PR.
 - [`ship_pr/`](ship_pr/SKILL.md) — сдать в ревью: коммит, пуш, PR, ссылка и перевод в Трекере, чек-лист.
 - [`review-comment-triage/`](review-comment-triage/SKILL.md) — разбор замечаний ревью по одному.
 - [`get_sp/`](get_sp/SKILL.md) — оценка задачи в story points по шкале команды.
+- [`daily/`](daily/SKILL.md) — сводка для дейлика: мои задачи за окно 10:30–10:30 МСК, в понедельник с пятницы.
 
 ## Как подключить
 
-Single-file скиллы (`<name>.md` с frontmatter `description:`) — симлинком в `~/.claude-second/commands/`:
-
-```bash
-ln -s ~/Projects/metrica_memory/skills/backend/lina/get_desc.md ~/.claude-second/commands/get_desc.md
-```
-
-Скиллы-папки (`<name>/SKILL.md`) — в `~/.claude-second/skills/`:
+Скиллы-папки (`<name>/SKILL.md`) — симлинком в `~/.claude-second/skills/`:
 
 ```bash
 ln -s ~/Projects/metrica_memory/skills/backend/lina/<skill-name> ~/.claude-second/skills/<skill-name>
@@ -27,9 +22,7 @@ ln -s ~/Projects/metrica_memory/skills/backend/lina/<skill-name> ~/.claude-secon
 
 ## Как добавить новый
 
-**Single-file** — один `<name>.md` с frontmatter в этой папке.
-
-**Skill-папка** — `mkdir <skill-name> && $EDITOR <skill-name>/SKILL.md`. Минимум:
+`mkdir <skill-name> && $EDITOR <skill-name>/SKILL.md`. Минимум:
 
 ```markdown
 ---
