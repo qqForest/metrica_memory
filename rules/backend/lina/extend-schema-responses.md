@@ -1,6 +1,8 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/views*.py"
+  - "**/views/**"
+  - "**/parameters.py"
 ---
 
 # `@extend_schema` — ответы и параметры
