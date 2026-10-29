@@ -1,6 +1,7 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/serializers*.py"
+  - "**/serializers/**"
 ---
 
 # DRF Serializer — паттерны

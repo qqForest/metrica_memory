@@ -1,6 +1,9 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/services*.py"
+  - "**/services/**"
+  - "**/models*.py"
+  - "**/models/**"
 ---
 
 # Аудит-логирование (`*Log` модели)

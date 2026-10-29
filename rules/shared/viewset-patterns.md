@@ -1,6 +1,7 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/views*.py"
+  - "**/views/**"
 ---
 
 # DRF ViewSet — паттерны
