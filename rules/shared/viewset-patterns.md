@@ -22,7 +22,7 @@ paths:
 - `get_serializer_class()` обязателен — **никогда** не мутировать `self.serializer_class` напрямую в методах.
 - Экземпляр сериализатора — через `self.get_serializer(...)`, не `SerializerClass(data=...)`.
 - Input/Output паттерн: входящий сериализатор для валидации, `IdSerializer` для ответа.
-- Каждый метод декорируется `@extend_schema(request=..., responses={...})` — Swagger не выводит схему автоматически.
+- Каждый метод декорируется `@extend_schema(request=..., responses=responses(...))` — Swagger не выводит схему автоматически. Хелпер `responses` из `base.responses`, не голый словарь: он добавляет базовые 400/401/403/405.
 - `transaction.atomic()` — в **сервисе**, не во view и не в сериализаторе.
 - Scope-методы (`get_own_queryset`, `get_team_queryset`) — минималистичные, Q-объекты inline.
 
@@ -44,7 +44,7 @@ class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
         self.queryset = self.queryset.select_related('position', 'schedule')
         return super().list(request, *args, **kwargs)
 
-    @extend_schema(request=WorkShiftCreateUpdateSerializer, responses={201: WorkShiftIdSerializer})
+    @extend_schema(request=WorkShiftCreateUpdateSerializer, responses=responses(WorkShiftIdSerializer, status.HTTP_201_CREATED))
     def create(self, request, *args, **kwargs):
         input_serializer = self.get_serializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)

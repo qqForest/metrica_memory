@@ -51,7 +51,7 @@ class WorkShiftListSerializer(serializers.ModelSerializer):
 
 ### 3. Create/Update
 
-Отдельный класс с `validate`/`create`/`update`. Вложенные данные — через `pop` + bulk. Бизнес-логика M2M — в `*Session` классе (см. [[service-layer]]).
+Отдельный класс с `validate`/`create`/`update`. Вложенные данные — через `pop` + bulk. Бизнес-логика M2M — в `*Service` классе (см. [[service-layer]]).
 
 ```python
 class RoleCreateUpdateSerializer(serializers.ModelSerializer):
@@ -60,7 +60,7 @@ class RoleCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         perms_data = validated_data.pop('role_permissions')
         role = Role.objects.create(**validated_data)
-        RoleSession().create_role_permissions(role, perms_data)
+        RoleService().create_role_permissions(role, perms_data)
         return role
 ```
 
