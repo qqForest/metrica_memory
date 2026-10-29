@@ -1,6 +1,8 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/serializers*.py"
+  - "**/serializers/**"
+  - "**/services/**"
 ---
 
 # Вложенный объект — в сериализаторе, не в SQL

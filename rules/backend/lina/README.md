@@ -1,53 +1,44 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/rules/**/*.md"
 ---
 
 # rules/backend/lina/
 
-Личные правила Лины. Подключены симлинком `~/.claude-second/rules/lina`. Кодовые (с `paths: ["**/*.py"]`)
-подгружаются, когда сессия открывает `.py`; процессные — в каждой сессии.
+Личные правила Лины. Подключены симлинком `~/.claude-second/rules/lina`. Кодовые правила подгружаются, когда
+сессия открывает файл под маску из `paths` (тесты — `**/tests/**`, вьюсеты — `**/views*`, общий стиль —
+`**/*.py`); процессные (без `paths`) — в каждой сессии. Маску ставить как можно уже: всё, что под `**/*.py`,
+попадает в контекст при первом же чтении кода.
 
 ## Что тут есть
 
-### Стиль кода
+### Стиль кода (`**/*.py`)
 
+- [`code-style.md`](code-style.md) — позиционные аргументы, `return` в строку, литерал вместо одноразовой
+  константы, классы выше функций, без реэкспортов, без лишних проверок, type hints, `_services.py`, связанные
+  записи в одной транзакции, код под снос не трогать.
 - [`compact-lines.md`](compact-lines.md) — не дробить строки до 119 символов.
-- [`orm-query-style.md`](orm-query-style.md) — сложные queryset по эталону `annotate_roster`: части в переменные, цепочка в скобках.
-- [`kwargs-at-call.md`](kwargs-at-call.md) — аргументы позиционно, по имени только после пропущенного необязательного.
-- [`naming-and-comments.md`](naming-and-comments.md) — полные имена, короткие docstring, **никаких** MCA-XXX в коде.
-- [`typing-everywhere.md`](typing-everywhere.md) — type hints везде, без строковых аннотаций.
-- [`no-redundant-checks.md`](no-redundant-checks.md) — повторы условий сводить, ветки под невозможное не писать.
-- [`literal-over-single-use-constant.md`](literal-over-single-use-constant.md) — одноразовое значение литералом, без косвенности ради длины строки.
-- [`query-over-python-loops.md`](query-over-python-loops.md) — один запрос вместо цикла в Python, разница множеств через `exclude`.
-- [`return-one-line.md`](return-one-line.md) — `return` одной строкой, длинное — в переменные выше.
-- [`build-objects-in-python.md`](build-objects-in-python.md) — вложенный объект в сериализаторе, `JSONObject` только ради фильтра/сортировки.
+- [`orm-query-style.md`](orm-query-style.md) — сложные queryset по эталону `annotate_roster`.
+- [`naming-and-comments.md`](naming-and-comments.md) — полные имена, короткие docstring, без MCA-XXX в коде.
+- [`query-over-python-loops.md`](query-over-python-loops.md) — один запрос вместо цикла в Python.
+- [`exceptions.md`](exceptions.md) — `<app>/exceptions.py` + `BaseAPIException`; недоступный объект — 404 без id.
 
-### Архитектурные конвенции
+### По слоям
 
-- [`exceptions-via-base.md`](exceptions-via-base.md) — `<app>/exceptions.py` + `BaseAPIException`, без `errors.py`.
-- [`services-suffix.md`](services-suffix.md) — файлы в `<app>/services/` с суффиксом `_services.py`.
-- [`split-viewsets-by-action.md`](split-viewsets-by-action.md) — при возможности разделять ViewSet'ы по action/ресурсу.
-- [`classes-before-functions.md`](classes-before-functions.md) — классы выше функций, «спустить под класс» = переставить.
-- [`no-reexport-init.md`](no-reexport-init.md) — импорт напрямую из модуля, без реэкспортов в `__init__.py`.
-- [`atomic-related-writes.md`](atomic-related-writes.md) — связанные записи в БД в одной `transaction.atomic()`.
-- [`select-for-update-by-ids.md`](select-for-update-by-ids.md) — блокировка по id, не поверх queryset с `distinct()`.
-- [`extend-schema-responses.md`](extend-schema-responses.md) — `responses()` и `codes=`, параметры в `<app>/parameters.py`.
-- [`thin-views.md`](thin-views.md) — view оркестрирует, query-параметры через сериализатор.
-- [`write-access-in-queryset.md`](write-access-in-queryset.md) — запрет на запись в `get_queryset`, не в `validate`; 404.
-- [`access-errors-404.md`](access-errors-404.md) — недоступный объект: 404 `<СУЩНОСТЬ>_NOT_FOUND`, без id в `detail`, с `field_name`.
-- [`permission-by-screen-section.md`](permission-by-screen-section.md) — право вьюсета по разделу экрана прав в макете.
+- [`viewsets.md`](viewsets.md) — тонкая view, доступ на запись в `get_queryset`, разделение по action.
+- [`permission-by-screen-section.md`](permission-by-screen-section.md) — право вьюсета по разделу экрана прав.
+- [`extend-schema-responses.md`](extend-schema-responses.md) — `responses()` и `codes=`, параметры в
+  `<app>/parameters.py`.
 - [`shared-filter-class.md`](shared-filter-class.md) — общий фильтр — наследник `Filter` с `field_name`.
-- [`leave-code-scheduled-for-removal.md`](leave-code-scheduled-for-removal.md) — код с задачей сноса не трогать.
+- [`build-objects-in-python.md`](build-objects-in-python.md) — вложенный объект в сериализаторе, не `JSONObject`.
+- [`select-for-update-by-ids.md`](select-for-update-by-ids.md) — блокировка по id, не поверх `distinct()`.
 
-### Тесты
+### Тесты (`**/tests/**`)
 
-- [`reuse-fixtures-before-adding.md`](reuse-fixtures-before-adding.md) — перед новой фикстурой проверить существующие, не плодить копии.
-- [`what-not-to-test.md`](what-not-to-test.md) — эффект сценарием через API, без тестов на удалённое, без тестовых пакетов и фильтров варнингов.
-- [`test-file-layout.md`](test-file-layout.md) — файл на action (от `development`) или на эндпоинт (эпик прав), параметр — по файлам ресурсов.
-- [`existing-tests-first.md`](existing-tests-first.md) — сначала починить фикстуры и прогнать существующие тесты.
+- [`tests.md`](tests.md) — раскладка по файлам, сначала существующие тесты, переиспользование фикстур, чего
+  не тестировать.
 
-### Процесс
+### Процесс (всегда)
 
 - [`pr-description-style.md`](pr-description-style.md) — выжимка для description, один экран без скролла.
 - [`pr-review-comments-style.md`](pr-review-comments-style.md) — короткие inline-комменты без эмодзи и ярлыков.
@@ -65,6 +56,11 @@ paths:
 ## Шаблон
 
 ```markdown
+---
+paths:
+  - "<самая узкая маска>"
+---
+
 # Название
 
 **Когда применять:** …

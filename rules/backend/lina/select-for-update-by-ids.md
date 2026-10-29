@@ -1,6 +1,7 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/services/**"
+  - "**/services.py"
 ---
 
 # select_for_update — по id, не поверх distinct
