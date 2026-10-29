@@ -1,6 +1,9 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/services*.py"
+  - "**/services/**"
+  - "**/models*.py"
+  - "**/models/**"
 ---
 
 # Soft delete — паттерн
@@ -61,45 +64,7 @@ deleted_by = models.ForeignKey(
 
 **НЕ дублировать** фильтр по каждому scope-методу (`get_team_queryset`, `get_own_queryset`) — это даёт повтор и сбивает читателя.
 
-**Правильно** — переопределить `get_queryset` поверх `ScopedViewSetMixin`, добавить фильтр одним местом с проверкой `is_superuser`. Суперюзер видит soft-deleted, все остальные — нет.
-
-```python
-class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
-    queryset = ExternalMetric.objects.all()   # голый — фильтр ниже
-
-    def get_all_queryset(self, qs):
-        # Здесь — orthogonal-фильтры, общие для всех (org-фильтр и т.п.).
-        # Soft-delete сюда НЕ ставим: get_all_queryset вызывается и для
-        # суперюзера тоже — фильтр спрятал бы удалённые от него.
-        user = self.request.user
-        if user.organization_id:
-            qs = qs.filter(establishment__organization_id=user.organization_id)
-        return qs
-
-    def get_team_queryset(self, qs):
-        # Только scope-логика (по локациям/юзеру). БЕЗ soft-delete.
-        return filter_by_establishments(self.request.user, qs, field_name='establishment_id')
-
-    def get_own_queryset(self, qs):
-        return self.get_team_queryset(qs)
-
-    def get_queryset(self):
-        # Применяется поверх ScopedViewSetMixin для всех action-ов.
-        # Суперюзер минует фильтр и видит удалённые.
-        qs = super().get_queryset()
-        if not self.request.user.is_superuser:
-            qs = qs.filter(deleted_at__isnull=True)
-        return qs
-```
-
-**Почему именно `get_queryset` override, не `get_team/own_queryset` и не `get_all_queryset`:**
-
-- `get_team/own_queryset` → дублирование на каждый scope; легко забыть один из методов, и часть ролей увидит удалённые.
-- `get_all_queryset` без guard → фильтр уходит к суперюзеру тоже (нежелательно).
-- `get_all_queryset` с `if not user.is_superuser` → работает, но семантика «orthogonal-фильтр для всех» лучше выражается в `get_queryset` поверх scope-разделения.
-- `get_queryset` override → одна точка, чистая семантика «после scope — убрать удалённые для всех не-суперюзеров».
-
-**Почему НЕ class-level queryset:** `get_object()` использует class-level queryset; `ScopedViewSetMixin` применяет bypass **поверх** уже отфильтрованного queryset — но не может «отменить» фильтр класса. Суперюзер получит 404 на soft-deleted. См. [[viewset-patterns]] (ловушка class-level queryset).
+**Правильно** — переопределить `get_queryset` поверх `ScopedViewSetMixin`, добавить фильтр одним местом с проверкой `is_superuser`. Суперюзер видит soft-deleted, все остальные — нет. Пример и ловушка class-level queryset — в [[viewset-patterns]] (orthogonal-фильтры).
 
 **История:** на ревью MCA-320 решение прошло три итерации — `get_team/own` → `get_all_queryset` (с guard `if not is_superuser`) → `get_team/own` → итог `get_queryset` override. Зафиксировано как канон.
 
@@ -123,30 +88,9 @@ class ExternalMetricViewSet(ScopedViewSetMixin, GenericViewSet, ...):
 
 ## Удаление через сервис
 
-**Правило:** soft-delete и аудит-лог — внутри `*DeleteService(request)`. View остаётся тонким.
+**Правило:** soft-delete и аудит-лог — внутри `*DeleteService(request)`. View остаётся тонким. Пример `WorkShiftDeleteService` — в [[service-layer]].
 
-```python
-class WorkShiftDeleteService:
-    def __init__(self, request):
-        self.request = request
-
-    def delete(self, work_shift):
-        with transaction.atomic():
-            old_snapshot = create_snapshot(work_shift)
-            work_shift.deleted_at = now()
-            work_shift.deleted_by = self.request.user
-            work_shift.save()
-            log_work_shift_action('delete', work_shift, self.request, snapshot=old_snapshot)
-
-
-class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        WorkShiftDeleteService(request).delete(instance)
-        return Response(status=204)
-```
-
-`transaction.atomic()` — в сервисе. `request` — в конструктор (для IP/User-Agent в аудит-логе). См. [[service-layer]], [[audit-logging]].
+`transaction.atomic()` — в сервисе. `request` — в конструктор (для IP/User-Agent в аудит-логе). См. [[audit-logging]].
 
 ---
 

@@ -52,26 +52,8 @@ def f():
 **Правило:**
 - **Не** конвертировать QuerySet в `list()` заранее. При повторном обращении выполняется новый SQL с актуальными данными.
 - Не нужно перечитывать QuerySet после `bulk_create` — он уже актуален.
-- Базовый `queryset` во ViewSet — голый `Model.objects.all()`. Никаких `.filter()` на class-level.
+- Базовый `queryset` во ViewSet — голый `Model.objects.all()`. Никаких `.filter()` на class-level — см. [[viewset-patterns]] (ловушки).
 - `select_related`/`prefetch_related` добавлять **только** в `list()` и `retrieve()` (для update/destroy ответ = id, тяжёлые JOIN-ы не нужны).
-
-**Пример:**
-
-```python
-# Хорошо
-class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
-    queryset = WorkShift.objects.all()
-
-    def list(self, request, *args, **kwargs):
-        self.queryset = self.queryset.select_related('position', 'schedule')
-        return super().list(request, *args, **kwargs)
-
-# Плохо — class-level filter ломает scope-bypass суперюзера и soft-delete
-class WorkShiftViewSet(ScopedViewSetMixin, ModelViewSet):
-    queryset = WorkShift.objects.filter(deleted_at__isnull=True)   # ← НЕТ
-```
-
-**Почему:** class-level `queryset` фильтрует **до** `ScopedViewSetMixin`. Bypass суперюзера не снимет фильтр, заданный на уровне класса — суперюзер не увидит soft-deleted записи и получит 404. Подробности — [[soft-delete]].
 
 ---
 

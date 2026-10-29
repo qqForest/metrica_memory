@@ -1,6 +1,6 @@
 ---
 paths:
-  - "**/*.py"
+  - "**/tests/**"
 ---
 
 # Тесты — CRUD-действия ViewSet
@@ -224,9 +224,10 @@ async def test_delete_204(self, superuser, test_object):
 3. Нет `str()` обёрток вокруг `id`.
 4. Нет inline `params`/`data` в `make_get`/`make_patch`.
 5. Нет лишних ассертов (перечисление всех `id`, когда достаточно `count`).
-6. Все `@pytest.fixture(scope='function')` — явно.
-7. Все импорты наверху, в одну строку (см. [[backend-style]]).
-8. Юнит-тесты сервисов (`test_*_service.py`) удалены.
+6. Нет уникальных имён/телефонов/email в фикстурах без функциональной причины.
+7. Все `@pytest.fixture(scope='function')` — явно.
+8. Все импорты наверху, в одну строку (см. [[backend-style]]).
+9. Юнит-тесты сервисов (`test_*_service.py`) и старые тесты на покрытый функционал удалены.
 
 ---
 
