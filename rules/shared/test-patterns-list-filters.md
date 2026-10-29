@@ -114,7 +114,7 @@ Scope-видимость по ролям. Покрывает весь спект
 
 ### 2. Простые фильтры (отдельный файл `*_list_filters.py`)
 
-Каждый фильтр — отдельный тест. Запросы от **superuser** (ALL scope) — чтобы изолировать фильтр от scope-логики. Покрывать: `full_name`, `phone`, `role`, `position` (одиночный и мульти), `organization`, `establishment` (primary, мульти), `user_status`, `search`, `ordering`.
+Фильтры — ассертами в общих тестах, не тест на фильтр (см. «Количество кейсов» в [[test-patterns-crud]]). Запросы от **superuser** (ALL scope) — чтобы изолировать фильтр от scope-логики. Покрывать: `full_name`, `phone`, `role`, `position` (одиночный и мульти), `organization`, `establishment` (primary, мульти), `user_status`, `search`, `ordering`.
 
 ### 3. Сложный фильтр (отдельный файл, специфичный по домену)
 
