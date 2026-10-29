@@ -68,9 +68,8 @@ raise ShiftException(ShiftException.ROLE_NOT_IN_SCHEDULE, detail, field_name='pr
 
 ## Связанные записи — в одной транзакции
 
-Несколько связанных записей (`create` + `.set()` на M2M, объект + лог, родитель + дочерние) — в одном
-`with transaction.atomic():` в сервисе. Иначе падение на второй записи оставит расписание без админов
-(PR #465).
+Несколько связанных записей (`create` + `.set()` на M2M, родитель + дочерние) — в одном `transaction.atomic()`
+в сервисе, см. [[service-layer]] (PR #465).
 
 ## Код под снос не трогать
 
