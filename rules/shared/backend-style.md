@@ -16,7 +16,7 @@ paths:
 **Правило:**
 - Все импорты — **только на верхнем уровне файла**. Ленивые импорты внутри функций/методов запрещены — circular import = сигнал к рефакторингу, не повод прятать import.
 - Только **абсолютные** импорты: `from shifts.models import WorkShift`, не `from .models import WorkShift`.
-- Длинные импорты переносятся через `\`, **не** через скобки `()`.
+- Длинные импорты добиваются до предела строки (119) и переносятся через `\` после запятой с отступом 4, **не** через скобки `()`.
 
 **Пример:**
 
@@ -24,9 +24,9 @@ paths:
 # Хорошо — в одну строку
 from shifts.models import WorkShift, WorkShiftLog
 
-# Хорошо — длинный импорт через backslash
-from shifts.models \
-    import WorkShift, WorkShiftLog, TimeClock, TimeClockLog, ShiftClaim
+# Хорошо — длинный импорт добит до предела строки, перенос через backslash
+from notifications.serializers import NotificationBatchSerializer, NotificationCounterSerializer, \
+    NotificationDeleteResultSerializer, NotificationReadResultSerializer, NotificationSerializer
 
 # Плохо — относительный
 from .models import WorkShift
@@ -99,7 +99,7 @@ RolePermission.objects.bulk_create([
 **Правило:**
 - В ViewSet и Serializer **не допускаются** приватные методы (`_method`).
 - Утилиты без состояния → функция в `base/services.py`.
-- Доменная логика → класс `*Session` в `app/services/services.py`.
+- Доменная логика → класс `*Service` в `app/services/services.py`.
 - Если действие вызывается 2+ раз внутри одной функции — вынести во **вложенную функцию с замыканием**, даже если это 2 строки.
 
 **Пример:**
@@ -153,7 +153,7 @@ permission-modules/     # неправильно
 
 **Когда применять:** при написании функций сервисного слоя.
 
-**Правило:** короткий однострочный docstring + `:param`/`:return:` при необходимости. **Не** Google-style (`Args:`/`Returns:`).
+**Правило:** docstring — одна строка по сути. Без `:param`/`:return:` и без Google-style (`Args:`/`Returns:`).
 
 **Пример:**
 
@@ -163,16 +163,11 @@ def filter_by_establishments(
     queryset: QuerySet,
     field_name: str = 'establishment_id',
 ) -> QuerySet:
-    """Фильтр queryset по локациям пользователя.
-
-    :param user: пользователь, для которого вычисляется доступ.
-    :param queryset: исходный QuerySet.
-    :return: отфильтрованный QuerySet.
-    """
+    """Фильтр queryset по локациям пользователя."""
     ...
 ```
 
-**Почему:** единый стиль с `base/services.py` и `user_profiles/services/services.py` — эталоны кодовой базы.
+**Почему:** параметры описывают type hints и имена; многострочный docstring устаревает вместе с сигнатурой.
 
 ---
 
